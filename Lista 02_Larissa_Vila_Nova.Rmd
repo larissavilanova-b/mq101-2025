@@ -1,0 +1,342 @@
+---
+title: "Lista 02_Larissa_Vila_Nova"
+author: "Larissa Soares Vila Nova de Barros"
+date: "2025-11-07"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# ============================================================
+# MQ101 — Métodos Quantitativos para Políticas Públicas
+# Lista de Exercícios #02 SCRIPT (R)
+# ------------------------------------------------------------
+# Preencha os campos abaixo antes de começar.
+# Nome: Larissa Soares Vila Nova de Barros
+# Matrícula/RA: ______________________________
+# Turma: Métodos quantitativos 101
+# Data: 10/10/2025
+# Descrição: Respostas da Lista #02 (HOPR Partes I–II, caps. 1–8)
+# ============================================================
+
+# ======================== ORIENTAÇÕES ========================
+#Exercício 01
+
+install.packages(c("tidyverse", "readr"))
+library(tidyverse)
+library(readr)
+options(scipen = 999) #evita notação cientfica
+
+
+#número de linhas
+nrow(dados)
+#número de colunas
+ncol(dados)
+#classes das váriaveis
+str(dados)
+
+sum
+
+#Exercício 02
+
+dados <- readr::read_csv("data/educ_saude.csv") 
+glimpse(dados)
+summary(dados)
+
+
+#Exercício 03
+
+#Faça uma tabela (no seu script) indicando o tipo teórico de cada variável (nominal,ordinal, discreta, contínua).
+
+
+
+dados <- dados |>
+  mutate(sexo= factor(sexo),
+         rede_escolar = factor(rede_escolar),
+         plano_saude = factor(plano_saude),
+         diagnostico = factor(diagnostico),
+         escolaridade = factor(escolaridade,
+                               levels = c("Fundamental","Médio","Superior"),
+                               ordered = TRUE)
+  )
+
+
+str(dados)
+glimpse(dados)
+
+#Cada variável representa uma unidade de valor com os respectivos resultados para o que a coluna demanda.
+
+#EXERCICIO 4a
+
+tab_plano <- table(dados$plano_saude)
+tab_plano
+prop_plano <- prop.table(tab_plano)
+prop_plano
+
+cbind(FA = tab_plano, FR = round(100 * prop_plano, 1)) #FA conteo #FR proporciones
+
+#a <- prop.table(table(dados$sexo))
+
+
+# Interprete: qual categoria C) a moda? Qual a proporção dominante?
+
+# A moda é a cadegoria SUS com 5024, sendo a que mais se repete
+#A proporção dominante é a do SUS 
+
+#EXERCICIO 4b Grafico de barras - qualitativa nominal
+
+dados |>
+  count(plano_saude) |>
+  ggplot(aes(x = plano_saude, y = n)) +
+  geom_col() +
+  labs(x = "Plano de sade", y = "Frequencia",
+       title = "Distribuio de plano de sade")
+
+#EXERCICIO 4c Grafico de barras - quantitativa ordinal
+
+dados |>
+  count(escolaridade) |>
+  ggplot(aes(x = escolaridade, y = n)) +
+  geom_col() +
+  labs(x = "Escolaridade (ordem substantiva)", y = "Frequencia")
+
+#Explique por que a ordem importa para interpretar a distribuição
+
+#Importa pois a ordem está na ordem sequencial de estudo e não na ordem alfabética o que possibilita uma sequencia lógica de faixa-etária
+
+#EXERCICIO 5:
+
+#sumário para idade
+sumario_idade <- dados |>
+  summarise(
+    n=sum(!is.na(idade)), #suma todos valores e exclue na 
+    media=mean(idade,na.rm = TRUE), #excluye NA
+    mediana=median(idade,na.rm = TRUE),
+    min=min(idade,na.rm = TRUE),
+    max=max(idade,na.rm = TRUE),
+    dp=sd(idade,na.rm = TRUE)
+  )
+
+sumario_idade
+
+#sumário para pressao sistolica
+sumario_pressaosistolica <- dados |>
+  summarise(
+    n=sum(!is.na(pressao_sistolica)), #suma todos valores e exclue na 
+    media=mean(pressao_sistolica,na.rm = TRUE), #exclue NA
+    mediana=median(pressao_sistolica,na.rm = TRUE),
+    min=min(pressao_sistolica,na.rm = TRUE),
+    max=max(pressao_sistolica,na.rm = TRUE),
+    dp=sd(pressao_sistolica,na.rm = TRUE)
+  )
+
+sumario_pressaosistolica
+
+#Não há assimetria
+
+#Graficar
+
+ggplot(dados, aes(x=idade))+
+  geom_histogram(bins=20)+
+  labs(title = "Histograma de Idade")
+
+
+ggplot(dados, aes(x=idade))+
+  geom_boxplot()+
+  labs(title = "Boxplot de Idade")
+
+#horizontal
+ggplot(dados, aes(y=idade))+
+  geom_boxplot()+
+  labs(title = "Boxplot de Idade")
+
+#Interprete forma, caudas e outliers.
+
+#No histograma apesar de pequeno há cauda para direita e para esquerda
+#No Boxplot a mediana está exatamente no meio o que demonstra que não há assimetria.
+#Os pontos individuais acima da haste superior (entre 75 e 80 anos) são os outliers. 
+
+#Repita para pressao_sistolica
+
+ggplot(dados, aes(x=pressao_sistolica))+
+  geom_histogram(bins=20)+
+  labs(title = "Histograma de Pressão sistolica")
+
+
+ggplot(dados, aes(x = "Geral", y = pressao_sistolica)) +
+  geom_boxplot() +
+  stat_summary(fun = mean, geom = "point", shape = 20, size = 3, color = "red") +
+  labs(title = "Boxplot da Pressão Sistólica (Geral)",
+       x = "", y = "Pressão Sistólica (mmHg)") +
+  theme_minimal()
+
+#Não há assimetria
+
+#EXERCICIO 6  Tabelas cruzadas e resumos por grupo 
+
+#Cruzando duas qualitativas
+
+tab_cross <- table(dados$diagnostico, dados$plano_saude)
+tab_cross
+round(100 * prop.table(tab_cross, margin = 2), 1) #% por columna 
+
+# Qual diagnC3stico C) mais prevalente dentro de cada tipo de plano?
+
+#O diagnóstico mais prevalente dentro de todos os tipos de planos de saúde é a categoria "sem" (Sem Diagnóstico Registrado), 
+#que representa consistentemente cerca de 80% a 81% das observações, independentemente do tipo de plano.
+
+#Resumo de quantitativa por grupo
+dados|>
+  group_by(sexo)|>
+  summarise(
+    n=n(),
+    media_idade=mean(idade,na.rm=TRUE),
+    dp_idade=sd(idade,na.rm=TRUE),
+    mediana_idade=median(idade,na.rm = TRUE)
+  )
+
+dados|>
+  group_by(escolaridade)|>
+  summarise(
+    n=n(),
+    media_idade=mean(idade,na.rm=TRUE),
+    dp_idade=sd(idade,na.rm=TRUE),
+    mediana_idade=median(idade,na.rm = TRUE)
+  )
+
+
+#Compare idade por sexo e por escolaridade. Comente diferenC'as
+
+#A idade dos participantes na amostra é similar e não é influenciada pelo sexo.
+#Para escolaridade a média e a mediana da idade são praticamente idênticas (todos os grupos têm média entre 40.2 e 40.5 e mediana 40).
+#Em muitos estudos, espera-se que indivíduos com maior escolaridade sejam, em média, mais jovens (ou vice-versa). 
+#A idade central é a mesma para todos os níveis de escolaridade.
+
+#EXERCICIO 7  Valores ausentes e outliers 
+
+#7a valores ausentes
+
+
+colSums(is.na(dados))
+
+#Com resultados sem NA significa que não há nem um dado faltante. 
+#Explique na.rm=TRUE.é crucial em análise descritiva, pois permite obter a estatística de sumário para os dados que estão presentes, 
+#evitando que a presença de alguns valores ausentes impeça totalmente o cálculo das métricas de tendência central e dispersão.
+
+#7b Outliers (regra do IQR)
+
+Q<-quantile(dados$tempo_estudo_h, probs = c(.25, .75), na.rm = TRUE)
+Q
+IQRv <- IQR(dados$tempo_estudo_h, na.rm = TRUE)
+lim_inf <- Q[1]- 1.5 * IQRv
+lim_sup <- Q[2] + 1.5 * IQRv
+
+subset_out <- dados |>
+  filter(tempo_estudo_h < lim_inf | tempo_estudo_h > lim_sup)
+
+nrow(subset_out)
+head(subset_out)
+
+# Discuta: outliers sC#o erros, casos raros ou informaC'C#o vC!lida?
+
+#A classificação de um outlier não é automática. Em primeiro lugar, deve-se tentar determinar se ele é um erro de mensuração. 
+#Caso contrário, o outlier representa um caso real que deve ser avaliado por seu impacto na análise. Assim não sendo identificado como erro, 
+#pode ser tratado como um caso raro e incomum, que pode ser representativo para uma informação válida.
+#Para variáveis quantitativas, como o tempo_estudo_h, a presença de outliers faz com que a Média seja um estimador menos representativo 
+#do centro, tornando a Mediana mais robusta. A decisão sobre a remoção deve ser transparente e justificada metodologicamente, pois a exclusão 
+#arbitrária pode distorcer a realidade da amostra.
+
+#EXERCICIO 8
+#Chamamos os dados novamente
+
+#Educacion
+#a. Distribucion de red_escolar (FA/FR)
+
+tab_redescol <- table(dados$rede_escolar)
+prop_redescol<- prop.table(tab_redescol)
+prop_redescol
+
+cbind(FA = tab_redescol, FR = round(100 *prop_redescol, 1)) #FA conteo #FR proporções
+
+#b. Compare tempo_estudo_h por escolaridade com boxplots.
+
+ggplot(dados,aes(tempo_estudo_h,escolaridade))+
+  geom_boxplot(show.legend = TRUE, outlier.alpha = 0.4)+
+  labs(title = "Tempo de estudo por escolaridade",
+       x = "Horas de estudo", y = "Nivel de Escolaridade") +
+  theme_minimal()
+
+#c. Interprete: hÃ¡ padrÃ£o monotÃ´nico com a ordem da escolaridade?
+
+#Há um padrão monotônico, aumentando conforme se avança na escolaridade. Isso sugere que, na amostra, indivíduos com maior nível de 
+#escolaridade tendem a dedicar mais tempo ao estudo do que aqueles com níveis mais baixos. 
+
+#Saude
+#a.  Histograma de pressao_sistolica e reporte mÃ©dia/mediana/DP."
+
+hist(dados$pressao_sistolica)
+media=mean(pressao_sistolica,na.rm = TRUE)
+mediana=median(pressao_sistolica,na.rm = TRUE)
+dp=sd(pressao_sistolica,na.rm = TRUE)
+
+#oção 2
+hist(dados$pressao_sistolica, main = "Histograma da Pressão Sistólica",
+     xlab = "Pressão Sistólica (mmHg)", col = "lightblue", border = "white")
+abline(v = media, col = "red", lwd = 2, lty = 2)
+
+
+#Cruzamento diagnostico Ã— plano_saude (% por coluna).
+tab_cross2 <- table(dados$diagnostico, dados$plano_saude)
+tab_cross2
+round(100 * prop.table(tab_cross2, margin = 2), 1) #% por columna 
+
+#Interprete: qual diagnÃ³stico Ã© mais prevalente em cada plano?
+
+# o diagnostico prevalente é a categoria sem, em ambos 
+
+#EXERCICIO 9
+
+# Crie uma tabela-sÃ­ntese por escolaridade:
+# a) in, mÃ©dia e mediana de idade, DP, mÃ­nimo e mÃ¡ximo;
+
+dados|>
+  group_by(escolaridade)|>
+  summarise(
+    n=n(),
+    media_idade=mean(idade,na.rm=TRUE),
+    mediana_idade=median(idade,na.rm = TRUE),
+    dp_idade=sd(idade,na.rm=TRUE),
+    minimo=min(idade,na.rm=TRUE),
+    maximo=max(idade,na.rm=TRUE)
+  )
+
+#FA/FR de plano_saude dentro de cada escolaridade.
+
+##escol_Fund <- dados |>
+##filter(escolaridade == "Fundamental") |>
+##count()
+
