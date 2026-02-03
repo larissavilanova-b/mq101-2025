@@ -1,0 +1,470 @@
+title: "Lista 5 21202510150"
+author: "Larissa Soares Vila Nova de Barros"
+date: "2026-02-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  dpi = 96
+)
+
+library(tidyverse)
+library(broom)
+
+set.seed(123)
+
+n <- 400
+
+dados <- tibble(
+  id        = 1:n,
+  idade     = round(rnorm(n, mean = 40, sd = 12)),
+  sexo      = sample(c("F", "M"), n, replace = TRUE, prob = c(0.55, 0.45)),
+  renda     = round(rlnorm(n, meanlog = log(2500), sdlog = 0.5), 0),
+  escolarid = sample(c("fundamental", "medio", "superior"),
+                     n, replace = TRUE, prob = c(0.30, 0.40, 0.30)),
+  ideologia = round(runif(n, 0, 10), 0),   # 0 = esquerda, 10 = direita
+  apoio_gov = rbinom(n, 1, plogis(-1 + 0.015*(idade - 40) +
+                                    0.4*(sexo == "F") +
+                                    0.5*(renda > 3000))),
+  satisf_gov = pmin(pmax(
+    round(3 + 2*apoio_gov + 0.001*(renda - 2500) +
+            rnorm(n, 0, 2), 0), 0), 10),
+  
+  # 0 = não participou, 1 = participou de protestos
+  
+  protesto = rbinom(n, 1, plogis(-2 + 0.3*(ideologia <= 4) - 0.2*apoio_gov))
+)
+
+glimpse(dados)
+
+# Exercício 01 --------------------------------------------------
+
+ggplot(dados, aes(x = renda)) +
+  geom_histogram(bins = 20)
+
+
+ # 1. Estatísticas descritivas para idade, renda e satisf_gov
+summary(dados$idade)
+summary(dados$renda)
+summary(dados$satisf_gov)
+
+# Média
+mean(dados$idade, na.rm = TRUE)
+mean(dados$renda, na.rm = TRUE)
+mean(dados$satisf_gov, na.rm = TRUE)
+
+# Mediana
+median(dados$idade, na.rm = TRUE)
+median(dados$renda, na.rm = TRUE)
+median(dados$satisf_gov, na.rm = TRUE)
+
+# Desvio-padrão
+sd(dados$idade, na.rm = TRUE)
+sd(dados$renda, na.rm = TRUE)
+sd(dados$satisf_gov, na.rm = TRUE)
+
+# Quartis
+quantile(dados$idade, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+quantile(dados$renda, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+quantile(dados$satisf_gov, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+
+
+#Resposta 
+
+#> summary(dados$idade)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#10.0    33.0    40.0    40.2    48.0    79.0 
+#> summary(dados$renda)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#681    1772    2504    2867    3466    9604 
+#> summary(dados$satisf_gov)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.000   2.000   4.000   4.263   6.000  10.000 
+
+# Desvio padrão 
+
+#> sd(dados$idade, na.rm = TRUE)
+#[1] 11.63932
+#> sd(dados$renda, na.rm = TRUE)
+#[1] 1588.662
+#> sd(dados$satisf_gov, na.rm = TRUE)
+#[1] 2.723442
+
+#Quartis
+
+#> quantile(dados$idade, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+#25% 50% 75% 
+#33  40  48 
+#> quantile(dados$renda, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+#25%     50%     75% 
+#1771.75 2503.50 3466.25 
+#> quantile(dados$satisf_gov, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+#25% 50% 75% 
+#2   4   6 
+
+ # 2. Proporção de respondentes por categoria de sexo e escolaridade
+  prop.table(table(dados$sexo))
+  
+  #resposta 
+  F    M 
+  0.55 0.45 
+prop.table(table(dados$escolarid))
+
+# fundamental       medio    superior 
+0.2975      0.4050      0.2975 
+
+# 3. Proporção de respondentes com apoio_gov = 1
+mean(dados$apoio_gov == 1, na.rm = TRUE)
+
+#Histograma 
+
+ggplot(dados, aes(x = renda)) +
+  geom_histogram(bins = 20)
+
+#Histograma 
+
+ggplot(dados, aes(x = satisf_gov)) +
+  geom_histogram(bins = 20)
+
+# Gráfico de barras da escolaridade
+
+ggplot(dados, aes(x = escolarid)) +
+  geom_bar()
+
+# 1.3 Em poucas linhas (em texto, na sua resposta), comente:
+
+# se a distribuição de renda parece simétrica ou assimétrica; - Assimétrica, pois a distribuição dos dados está mais concentrada até o 2500, com calda longa 
+# se satisf_gov parece concentrada em valores baixos, médios ou altos;- parece mais concentrado no médio
+# como se distribuem sexo e escolarid na amostra.
+
+ggplot(dados, aes(x = escolarid, fill = sexo)) +
+  geom_bar(position = "dodge")
+
+# mulheres estão proporcionalmente com uma escolaridade maior que os homens, homens estão em maior proporção 
+
+# Exercício 2
+
+#a. sexo (F/M) e apoio_gov (0/1)
+#• 	X (sexo): categórica - qualitativa (duas categorias: F/M)
+#• 	Y (apoio_gov): categórica binária - qualitativa (0/1)
+#• 	Teste sugerido: Qui-quadrado de independência (análise tabular)
+
+#b. escolarid (3 categorias) e apoio_gov (0/1)
+#• 	X (escolarid): categórica - qualitativa  (três categorias)
+#• 	Y (apoio_gov): categórica binária  - qualitativa (0/1)
+#• 	Teste sugerido: Qui-quadrado de independência (análise tabular)
+
+#c. satisf_gov (0–10) e apoio_gov (0/1)
+#• 	X (satisf_gov): continua - quantitativa discreta (escala de 0 a 10)
+#• 	Y (apoio_gov): categórica binária - qualitativa (0/1)
+#• 	Teste sugerido: Teste t de diferença de médias (comparar médias de satisfação entre os grupos apoio = 0 e apoio = 1)
+
+#d. satisf_gov (0–10) e renda (contínua)
+#• 	X (satisf_gov): contínua - quantitativa discreta
+#• 	Y (renda): contínua - quantitativa
+#• 	Teste sugerido: Correlação de Pearson (se distribuição normal) ou Spearman (se não normal)
+#• 	Também pode ser explorado via regressão simples (renda como variável dependente ou satisfação como dependente).
+
+#e. satisf_gov (0–10) e ideologia (0–10)
+#• 	X (satisf_gov): contínua - quantitativa discreta
+#• 	Y (ideologia): contínua
+#• 	Teste sugerido: Correlação de Pearson (ou Spearman, dependendo da distribuição)
+#• 	Também pode ser modelado com regressão simples (uma variável como dependente).
+
+
+# 3 Exercício 3 – Teste qui-quadrado: sexo e apoio ao govern
+# Tabela de contingência
+
+tab_sexo_apoio <- table(dados$sexo, dados$apoio_gov)
+tab_sexo_apoio
+
+# Proporções por coluna 
+prop.table(tab_sexo_apoio, margin = 2)
+
+#3.2. Formule as hipóteses:
+  
+#H0: não há associação entre sexo e apoio_gov na população;
+#H1: há associação entre sexo e apoio_gov.
+
+#3.3. Aplique o teste de qui-quadrado em R:
+  
+  chisq.test(tab_sexo_apoio)
+
+#3.4. Em texto, interprete:
+  
+#  o valor do qui-quadrado; - = 0.68956
+#os graus de liberdade; - df = 1
+#o valor-p;- 0.4063
+#se rejeita ou não H0
+#a 5%; - Como p = 0.4063 > 0.05, não rejeitamos H0, O valor não é significativo
+
+# o significado dessa decisão em linguagem substantiva (sem jargão desnecessário).
+
+# Isso significa que, com base nessa amostra, 
+# não há evidência estatística de que o apoio ao governo varie de forma significativa entre homens e mulheres. 
+
+#3.5. Construa um gráfico de barras com a distribuição de apoio_gov dentro de cada categoria de sexo (use, por exemplo, position = "fill"):
+
+  ggplot(dados, aes(x = sexo, fill = factor(apoio_gov))) +
+    geom_bar(position = "fill") +
+    scale_y_continuous(labels = scales::percent) +
+    labs(fill = "Apoio ao governo")  
+  
+  # Comente se o padrão visual é coerente com o resultado do teste.
+  #está sim, pois não se vê uma associação capaz de comprovar que um sexo apoie mais o governo que outro
+  
+  # Exercício 4 – Diferença de médias: renda entre apoiadores e não apoiadores
+  
+  dados %>%
+    group_by(apoio_gov) %>%
+    summarise(
+      media_renda = mean(renda),
+      sd_renda    = sd(renda),
+      n           = n()
+    )
+  
+ # 4.2. Formule as hipóteses:
+    
+  # H0:μapoia=μnão apoia
+  #H1:μapoia≠μnão apoia
+  
+  #4.3. Aplique o teste t
+  #para diferença de médias (assuma, inicialmente, variâncias desiguais):
+    
+    t.test(renda ~ apoio_gov, data = dados)
+  
+  #4.4. Em texto, interprete:
+    
+  #a estimativa da diferença de médias; = -253,12
+  #o intervalo de confiança de 95%; -  -576.65627   70.40827 - Como o intervalo inclui zero, não podemos afirmar com confiança que exista diferença real entre as médias.
+  #o valor-p; - p = 0.1247
+  #a conclusão sobre H0 a 5%.  - Como p > 0.05, não rejeitamos H0
+
+  # não há evidência estatística de que o apoio ao governo esteja associado a diferenças significativas na renda média dos respondentes.
+  #Embora os apoiadores tenham uma renda média ligeiramente maior, essa diferença pode ser explicada pelo acaso na amostra
+    
+  # 4.5. Construa um boxplot de e renda por apoio_gov e comente brevemente a relação entre o gráfico e o resultado do teste.
+    
+    ggplot(dados, aes(x = factor(apoio_gov), y = renda)) +
+      geom_boxplot()
+
+    #o gráfico reforça o teste, não existindo diferença não é estatisticamente significativa (como vimos no teste t com p = 0.1247).
+    #Ou seja, a renda média dos dois grupos pode ser considerada semelhante, e essa diferença visual pode ser fruto da variação natural da amostra.
+
+    
+  # Exercício 5 – Correlação
+    
+  # 5.1. Calcule a matriz de correlações de Pearson entre renda, ideologia e satisf_gov (use apenas casos completos):
+    dados %>%
+      select(renda, ideologia, satisf_gov) %>%
+      cor(use = "complete.obs")
+    
+  #5.2. Para cada par de variáveis, com base na matriz:
+      
+   #  indique o sinal da correlação (positivo/negativo);
+    
+    #comente, de forma qualitativa, a força da associação (fraca, moderada, forte), usando como referência aproximada:
+      
+    #|r| ≈ 0.1 (fraco),
+    #|r| ≈ 0.3 (moderado),
+    #|r| ≥ 0.5 (mais forte).
+    
+    # 1. renda e ideologia
+    #- Correlação: +0.0205
+    #- Sinal: positivo
+    #- Força: muito fraca (praticamente nula)
+    #- Interpretação: Não há associação relevante entre renda e ideologia. A variação na renda não está relacionada à posição ideológica dos respondentes.
+    
+    # 2. renda e satisf_gov
+    #- Correlação: +0.5934
+    #- Sinal: positivo
+    #- Força: forte
+    #- Interpretação: Há uma associação clara: quanto maior a renda, maior tende a ser a satisfação com o governo. A relação é consistente e significativa.
+    
+    #3. ideologia e satisf_gov
+    #- Correlação: –0.0796
+    #- Sinal: negativo
+    #- Força: fraca
+    #- Interpretação: Existe uma leve tendência de que pessoas com ideologia mais à direita (valores mais altos) estejam menos satisfeitas com o governo, mas essa associação é muito fraca e pode não ser significativa
+    
+  # 5.3. Construa um gráfico de dispersão de renda (eixo x) por satisf_gov (eixo y), com linha de tendência linear:
+    
+    ggplot(dados, aes(x = renda, y = satisf_gov)) +
+      geom_point(alpha = 0.4) +
+      geom_smooth(method = "lm", se = TRUE)
+# 5.4. Em texto, comente o padrão visual do gráfico, relacionando-o ao sinal e magnitude da correlação estimada
+    # o gráfico mostra uma associação forte com tendência positiva renda e satisfação com o governo. À medida que a renda aumenta, os pontos tendem a se alinhar em torno de uma linha ascendente, indicando que pessoas com maior renda tendem a relatar maior satisfação.
+
+  # Exercício 6 – Regressão linear simples: satisfação e renda
+    
+    # [ _i = _0 + _1 ,_i + _i]
+    
+    mod1 <- lm(satisf_gov ~ renda, data = dados)
+    summary(mod1)
+    
+#o intercepto β^0 (discutindo se a interpretação literal faz sentido ou não);
+    
+    # Na prática, essa interpretação é limitada não sendo prática no mundo real e nas análises propostas pela amostra não sendo zero possível, O intercepto é necessário para ajustar a reta, mas não deve ser interpretado isoladamente como um valor substantivo.
+    
+#o coeficiente de renda β^1 (direção do efeito e unidade de medida – por exemplo, variação esperada em satisf_gov associada a um aumento de R$ 1.000 na renda, se desejar reescalar);
+   
+    # O valor indica que, para cada R$ 1 adicional de renda, a satisfação com o governo aumenta em média 0.001017 pontos. - A cada R$1000,00 aumenta 1,017
+
+# o valor-p associado a renda: indique se há evidência estatística de associação linear entre renda e satisf_gov. 
+   
+   # valor está bem abaixo do teste de significância de 5%, assim Há forte evidência estatística de que existe uma associação linear entre renda e satisfação com o governo.
+  
+    
+    #6.3. Utilize o broom para obter uma tabela organizada:
+    
+    tidy(mod1)
+
+    #Analise o output e conecte:
+      
+    #estimativas; - - Intercepto = 1,35 → valor esperado de satisfação quando renda = 0 (interpretação literal pouco útil, mas matematicamente necessário).
+    #- Coeficiente de renda = 0,00102 → cada aumento de R$ 1 na renda está associado a um aumento médio de 0,00102 pontos em satisfação; ou ~1,02 pontos para cada R$ 1.000.
+    
+    #erros-padrão;-  indicam a variabilidade das estimativas; quanto menores, mais precisa é a estimativa.
+    #estatísticas t;- valores altos mostram que as estimativas estão muitas vezes maiores que seus erros-padrão, sugerindo forte evidência contra a hipótese nula de coeficiente = 0.
+    #valores-p. - ambos extremamente pequenos, confirmando significância estatística. No caso da renda, há evidência robusta de associação linear positiva com satisfação.
+    
+    #6.4. Refaça o gráfico de dispersão com reta de regressão (como no Exercício 5) e escreva um parágrafo relacionando:
+      
+    #o gráfico;
+    #o sinal de β^1;
+    #o valor e significância de β^1.
+    
+  install.packages("ggplot2")
+    
+    library(ggplot2)
+  
+    ggplot(dados, aes(x = renda, y = satisf_gov)) +
+      geom_point(alpha = 0.6) +
+      geom_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "blue") +
+      
+      theme_minimal()
+    
+    #O gráfico mostra uma nuvem de pontos com a reta de regressão ajustada.
+    #A inclinação positiva da reta confirma o sinal de \beta ^1, indicando que conforme a renda aumenta, a satisfação com o governo também tende a crescer. 
+    #O valor estimado de \beta ^1=0,00102 sugere que um acréscimo de R$ 1.000 na renda está associado a um aumento médio de aproximadamente 1 ponto na satisfação. 
+    #Além disso, o valor-p extremamente pequeno (< 2e-16) confirma que essa relação é estatisticamente significativa e não se deve ao acaso.
+   
+    
+   # Exercício 7 – Diagnóstico simples do modelo
+    
+    #Usando o modelo do Exercício 6 (mod1):
+    
+    mod1 <- lm(satisf_gov ~ renda, data = dados)
+    summary(mod1)
+    
+    #7.1. Extraia resíduos e valores ajustados:
+    dados_diag <- augment(mod1)
+    glimpse(dados_diag)
+    
+    #7.2. Construa:
+    
+    #um gráfico de resíduos vs valores ajustados (.resid vs .fitted);
+    
+    ggplot(dados_diag, aes(x = .fitted, y = .resid)) +
+      geom_point(alpha = 0.4) +
+      geom_hline(yintercept = 0, linetype = "dashed")
+    
+    #um gráfico QQ-plot dos resíduos.
+    
+    ggplot(dados_diag, aes(sample = .resid)) +
+      stat_qq() +
+      stat_qq_line()
+    
+    #7.3. Em texto, com base nos gráficos, comente:
+    #se há indícios fortes de heterocedasticidade (padrão em funil, por exemplo);
+    #se a distribuição dos resíduos parece muito distante de algo aproximadamente normal.
+    
+    #no gráfico de resíduos versus valores ajustados, não se observa um padrão em funil ou outro indício forte de heterocedasticidade:
+    # a dispersão dos resíduos parece relativamente constante ao longo da reta, sugerindo que a variância dos erros é aproximadamente homogênea. 
+  
+    #o gráfico Q-Q mostra que os resíduos seguem de forma razoável a linha de referência, com pequenas desvios nas extremidades. 
+    #Isso indica que a distribuição dos resíduos não está muito distante da normalidade, havendo apenas leves discrepâncias nas caudas. 
+    
+    # os diagnósticos sugerem que as principais suposições do modelo linear — homocedasticidade e normalidade dos resíduos — 
+    #estão suficientemente atendidas para que os resultados sejam considerados confiáveis.
+    
+    
+    #7.4. Explique, em poucas linhas, por que vale a pena olhar pelo menos esses dois gráficos antes de confiar inteiramente nas inferências do modelo.
+    
+    #Os dois gráficos ajudam a verificar se as condições básicas do modelo estão sendo atendidas. 
+    
+    #O gráfico de resíduos mostra se os erros estão distribuídos de forma equilibrada, 
+    #sem padrões que indiquem problemas como variação desigual. 
+    
+    #Já o gráfico de normalidade indica se os erros seguem aproximadamente a distribuição esperada. 
+    #Se esses pontos não forem avaliados, corre-se o risco de confiar em resultados que podem estar distorcidos pelas limitações do modelo.
+    
+    
+    #Exercício 8 – Regressão com variável dummy e diferença de médias
+    
+    #Considere o modelo:
+    #[ _i = _0 + _1 ,_i + _i]
+    #onde apoio_gov é uma variável indicadora (0 = não apoia; 1 = apoia).
+    
+    #8.1. Estime o modelo:
+    
+    mod2 <- lm(satisf_gov ~ apoio_gov, data = dados)
+    summary(mod2)
+    
+    #8.2. Calcule as médias de satisf_gov nos dois grupos (apoio_gov = 0 e apoio_gov = 1) e compare com os coeficientes de mod2.
+    #No modelo com variável dummy, o intercepto representa a média de satisfação dos que não apoiam o governo (3,41). 
+    #O coeficiente da dummy mostra a diferença entre os grupos (2,27), e somando os dois obtemos a média dos apoiadores (5,68). 
+    #Ou seja, os coeficientes da regressão reproduzem exatamente as médias observadas nos dois grupos.
+    
+    
+    #8.3. Mostre, com base nos resultados numéricos, que:
+    # \(\hat{\beta}_0\) corresponde à média de satisf_gov para apoio_gov = 0;
+    # \(\hat{\beta}_1\) corresponde à diferença entre as médias dos dois grupos.
+    
+    #O intercepto (\hat {\beta }_0=3,412) corresponde exatamente à média de satisfação com o governo para o grupo que não apoia (apoio_gov = 0).
+    #O coeficiente da dummy (\hat {\beta }_1=2,268) representa a diferença entre as médias dos dois grupos.
+    #Assim, a média dos que apoiam o governo é dada por: \hat {\beta }_0+\hat {\beta }_1=3,412+2,268=5,680
+    #Comparando:
+    #Média dos que não apoiam = 3,41
+    #Média dos que apoiam = 5,68
+    #Diferença = 2,27 → que coincide com \hat {\beta }_1.
+    
+    #8.4. Aplique:
+    
+    t.test(satisf_gov ~ apoio_gov, data = dados)
+    
+    #Compare o valor-p de apoio_gov no summary(mod2) com o valor-p do t.test. Em texto, discuta a relação entre os dois resultados.
+    
+    
+    #O valor-p do coeficiente de apoio_gov na regressão é praticamente zero (< 2e-16), assim como o valor-p do teste t (< 2,2e-16). 
+    #Isso acontece porque os dois testes são, na prática, equivalentes: ambos verificam se há diferença significativa entre as médias de satisfação dos que apoiam e dos que não apoiam o governo. 
+    #assim, os dois resultados confirmam a mesma conclusão: a diferença entre os grupos é estatisticamente muito significativa.
